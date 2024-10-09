@@ -28,6 +28,12 @@ jobs:
       with:
         name: Windows
         path: dist/CurseBreaker.exe
+    - name: Download latest release
+      run: |
+        curl -L -o CurseBreaker.exe https://github.com/AcidWeb/CurseBreaker/releases/latest/download/CurseBreaker.exe
+    - name: Install CurseBreaker
+      run: |
+        ./CurseBreaker.exe --install
 
   linux:
     name: Linux
@@ -49,6 +55,13 @@ jobs:
       with:
         name: Linux
         path: dist/CurseBreaker
+    - name: Download latest release
+      run: |
+        curl -L -o CurseBreaker https://github.com/AcidWeb/CurseBreaker/releases/latest/download/CurseBreaker
+    - name: Install CurseBreaker
+      run: |
+        chmod +x ./CurseBreaker
+        ./CurseBreaker --install
 
   macos:
     name: macOS
@@ -70,3 +83,10 @@ jobs:
       with:
         name: macOS
         path: dist/CurseBreaker
+    - name: Download latest release
+      run: |
+        curl -L -o CurseBreaker https://github.com/AcidWeb/CurseBreaker/releases/latest/download/CurseBreaker
+    - name: Install CurseBreaker
+      run: |
+        chmod +x ./CurseBreaker
+        ./CurseBreaker --install

@@ -81,3 +81,16 @@ exe = EXE(
     icon=['CurseBreaker.ico'] if platform.system() == 'Windows' else None,
     version=raw_version
 )
+
+# Installation steps to ensure the binary is placed in the correct directory
+if platform.system() == 'Windows':
+    install_path = os.path.join(os.getenv('APPDATA'), 'CurseBreaker')
+elif platform.system() == 'Darwin':
+    install_path = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support', 'CurseBreaker')
+else:
+    install_path = os.path.join(os.path.expanduser('~'), '.cursebreaker')
+
+if not os.path.exists(install_path):
+    os.makedirs(install_path)
+
+shutil.move(os.path.join(os.getcwd(), 'dist', 'CurseBreaker.exe'), os.path.join(install_path, 'CurseBreaker.exe'))

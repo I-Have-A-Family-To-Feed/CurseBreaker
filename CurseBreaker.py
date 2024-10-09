@@ -1013,6 +1013,66 @@ class TUI:
         self.core.http.close()
         sys.exit(0)
 
+    def install_cursebreaker(self):
+        # Determine the correct installation path
+        if self.os == 'Windows':
+            install_path = os.path.join(os.getenv('APPDATA'), 'CurseBreaker')
+        elif self.os == 'Darwin':
+            install_path = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support', 'CurseBreaker')
+        else:
+            install_path = os.path.join(os.path.expanduser('~'), '.cursebreaker')
+
+        # Create the installation directory if it doesn't exist
+        if not os.path.exists(install_path):
+            os.makedirs(install_path)
+
+        # Move the executable to the installation directory
+        shutil.move(sys.executable, os.path.join(install_path, os.path.basename(sys.executable)))
+
+        # Update the PATH environment variable
+        if self.os == 'Windows':
+            os.system(f'setx PATH "%PATH%;{install_path}"')
+        else:
+            with open(os.path.join(os.path.expanduser('~'), '.bashrc'), 'a') as bashrc:
+                bashrc.write(f'\nexport PATH="{install_path}:$PATH"\n')
+
+        self.console.print(f'[bold green]CurseBreaker has been installed in {install_path}.[/bold green]')
+
+    def prompt_install_location(self):
+        self.console.print('[bold red]CurseBreaker could not determine the correct installation location.[/bold red]')
+        if Confirm.ask('Would you like to manually select the installation location?'):
+            install_path = self.session.prompt('Please enter the installation path: ')
+            if not os.path.exists(install_path):
+                os.makedirs(install_path)
+            shutil.move(sys.executable, os.path.join(install_path, os.path.basename(sys.executable)))
+            self.console.print(f'[bold green]CurseBreaker has been installed in {install_path}.[/bold green]')
+        else:
+            self.console.print('[bold red]Installation aborted.[/bold red]')
+
+    def find_wow_installation(self):
+        # Check for Wow.exe, WowClassic.exe, or World of Warcraft.app in the current directory
+        if glob.glob('Wow*.exe') or glob.glob('World of Warcraft.app'):
+            return os.getcwd()
+        # Check common installation directories
+        common_paths = [
+            os.path.join(os.getenv('PROGRAMFILES'), 'World of Warcraft'),
+            os.path.join(os.getenv('PROGRAMFILES(X86)'), 'World of Warcraft'),
+            os.path.join(os.path.expanduser('~'), 'Applications', 'World of Warcraft'),
+            os.path.join(os.path.expanduser('~'), 'Games', 'World of Warcraft')
+        ]
+        for path in common_paths:
+            if os.path.exists(path) and (glob.glob(os.path.join(path, 'Wow*.exe')) or glob.glob(os.path.join(path, 'World of Warcraft.app'))):
+                return path
+        return None
+
+    def prompt_user_for_directory(self):
+        self.console.print('[bold red]CurseBreaker could not determine the correct installation location.[/bold red]')
+        if Confirm.ask('Would you like to manually select the installation location?'):
+            install_path = self.session.prompt('Please enter the installation path: ')
+            if not os.path.exists(install_path):
+                os.makedirs(install_path)
+            return install_path
+        return None
 
 if __name__ == '__main__':
     if clientpath := os.environ.get('CURSEBREAKER_PATH'):
@@ -1021,4 +1081,12 @@ if __name__ == '__main__':
         os.chdir(os.path.dirname(os.path.abspath(sys.executable)))
     set_terminal_title(f'CurseBreaker v{__version__}')
     app = TUI()
+    wow_installation_path = app.find_wow_installation()
+    if wow_installation_path:
+        os.chdir(wow_installation_path)
+    else:
+        user_selected_path = app.prompt_user_for_directory()
+        if user_selected_path:
+            os.chdir(user_selected_path)
+    app.install_cursebreaker()
     app.start()
